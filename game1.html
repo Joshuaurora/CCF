@@ -46,11 +46,13 @@ input,select{font-family:inherit;outline:none}
 .tabs{display:flex;gap:4px;padding:5px 16px;background:transparent;border-bottom:1px solid var(--bdr);overflow-x:auto}
 .tab{padding:8px 12px;border-radius:10px 10px 0 0;border:1px solid transparent;background:transparent;color:var(--dim);font-weight:600;font-size:.82rem}
 .tab-active{border-color:var(--bdr);border-bottom-color:var(--pnl);background:var(--pnl);color:var(--acc);font-weight:800}
-.main{padding:18px;max-width:1400px;margin:0 auto}
+.main{padding:18px;max-width:1600px;margin:0 auto}
+.dashboard{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:start}
+.sidecol{position:sticky;top:126px}
 .warn-bar{background:rgba(255,136,68,.10);border-bottom:1px solid rgba(255,136,68,.25);padding:8px 20px}
 body.light .warn-bar{background:rgba(234,122,40,.10)}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{background:linear-gradient(180deg,var(--pnl),var(--bg2));border:1px solid var(--bdr);border-radius:18px;padding:22px;max-width:860px;width:100%;max-height:84vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal{background:linear-gradient(180deg,var(--pnl),var(--bg2));border:1px solid var(--bdr);border-radius:18px;padding:22px;max-width:960px;width:100%;max-height:84vh;overflow-y:auto;box-shadow:var(--shadow)}
 .news-card{border-radius:14px;padding:16px;border-left:4px solid}
 .progress{height:6px;background:var(--mut);border-radius:999px;overflow:hidden}
 .progress-fill{height:100%;border-radius:999px;transition:width .3s}
@@ -61,12 +63,20 @@ body.light .story-box{background:linear-gradient(180deg,rgba(0,168,137,.08),rgba
 .mono-dim{color:var(--dim)}
 .hero-title{font-size:3.7rem;font-weight:900;letter-spacing:4px}
 .hero-sub{font-size:2rem;font-weight:900;letter-spacing:6px}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:6px 12px;font-size:.82rem}
+.kv b{color:var(--txt)}
+.bottom-log{margin-top:14px}
+@media (max-width:1100px){
+  .dashboard{grid-template-columns:1fr}
+  .sidecol{position:static}
+}
 @media (max-width:768px){
   :root{--scale:1.06}
   .main{padding:12px}
   .hero-title{font-size:2.8rem}
   .hero-sub{font-size:1.4rem}
   .towerCard{min-height:unset}
+  .kv{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -82,26 +92,26 @@ const MO=["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月"
 const TC=["#7dd3fc","#5eead4","#86efac","#fde68a","#fdba74","#fca5a5","#c4b5fd","#f9a8d4","#fb923c","#94a3b8"];
 
 const FLOORS=[
-  {id:"time_n",cat:"time",name:"标准时间",icon:"⏱️",desc:"默认赛程，稳妥开局。",ap:0,cost:0,fx:{timeM:1}},
-  {id:"time_l",cat:"time",name:"加时赛",icon:"⏳",desc:"给选手更多思考空间，适合质量导向赛事。",ap:3,cost:200,fx:{timeM:1.5,solvB:.15}},
-  {id:"time_s",cat:"time",name:"闪电赛",icon:"⚡",desc:"更刺激、更有观赏性，但翻车率也更高。",ap:2,cost:100,fx:{timeM:.7,hangM:1.3,repB:1}},
-  {id:"fmt_oi",cat:"fmt",name:"OI赛制",icon:"📋",desc:"传统盲评，经典但容易引发争议。",ap:0,cost:0,fx:{hangR:.15}},
-  {id:"fmt_ioi",cat:"fmt",name:"IOI赛制",icon:"🔄",desc:"分点评测，挂分几率更低。",ap:4,cost:500,fx:{hangR:0}},
-  {id:"fmt_se",cat:"fmt",name:"OI+Self-Eval",icon:"🔍",desc:"增加自评环节，减少冤案。",ap:2,cost:200,fx:{hangR:.06}},
-  {id:"opening",cat:"evt",name:"开幕式",icon:"🎪",desc:"媒体关注度更高，家长更愿意报名。",ap:3,cost:600,fx:{repB:3,partM:1.1}},
-  {id:"lecture",cat:"evt",name:"赛后讲题",icon:"🎓",desc:"把比赛做成一次真正的学习体验。",ap:2,cost:350,fx:{repB:2}},
-  {id:"live",cat:"evt",name:"比赛直播",icon:"📺",desc:"增强传播力，知名度明显上升。",ap:4,cost:700,fx:{repB:2,partM:1.2}},
-  {id:"awards",cat:"evt",name:"颁奖典礼",icon:"🏅",desc:"仪式感拉满，能有效提升口碑。",ap:3,cost:900,fx:{repB:4}},
-  {id:"wkshp",cat:"evt",name:"Workshop",icon:"🛠️",desc:"赛前辅导，提升整体题面接受度。",ap:2,cost:300,fx:{repB:1,solvB:.1}},
-  {id:"p_easy",cat:"diff",name:"简单题集",icon:"🟢",desc:"更适合拉新和扩大影响。",ap:1,cost:50,fx:{diffM:-2,partM:1.2}},
-  {id:"p_hard",cat:"diff",name:"困难题集",icon:"🔴",desc:"更能打出品牌，但翻车风险上升。",ap:2,cost:100,fx:{diffM:2,repMul:1.3,partM:.8}},
-  {id:"p_more",cat:"diff",name:"题目加量",icon:"📚",desc:"赛程更扎实，但准备压力更大。",ap:3,cost:250,fx:{extraP:2}},
-  {id:"wifi",cat:"fac",name:"高速网络",icon:"📡",desc:"评测更稳定，投诉更少。",ap:2,cost:400,fx:{hangM:.7,repB:1}},
-  {id:"food",cat:"fac",name:"选手餐饮",icon:"🍱",desc:"吃得好，怨气就会少很多。",ap:1,cost:500,fx:{repB:2,solvB:.05}},
-  {id:"shirt",cat:"fac",name:"纪念T恤",icon:"👕",desc:"把比赛做成文化符号。",ap:2,cost:400,fx:{repB:2,partM:1.05}},
-  {id:"venue",cat:"fac",name:"豪华场地",icon:"🏛️",desc:"顶级考场配置，家长一眼就能感知差异。",ap:5,cost:1200,fx:{repB:3,solvB:.1,partM:1.15}},
-  {id:"invite",cat:"spec",name:"特邀选手",icon:"⭐",desc:"明星选手自带热度。",ap:4,cost:800,fx:{repB:5,partM:1.1}},
-  {id:"spons",cat:"spec",name:"企业赞助",icon:"💎",desc:"先回血，再扩大影响力。",ap:3,cost:0,fx:{moneyB:600,repB:1}},
+  {id:"time_n",cat:"time",name:"标准时间",icon:"⏱️",desc:"默认赛程，稳妥开局。",formal:"timeM=1",ap:0,cost:0,fx:{timeM:1}},
+  {id:"time_l",cat:"time",name:"加时赛",icon:"⏳",desc:"给选手更多思考空间，适合质量导向赛事。",formal:"timeM=1.5, solvB+=0.15",ap:3,cost:200,fx:{timeM:1.5,solvB:.15}},
+  {id:"time_s",cat:"time",name:"闪电赛",icon:"⚡",desc:"更刺激、更有观赏性，但翻车率更高。",formal:"timeM=0.7, hangM*=1.3, repB+=1",ap:2,cost:100,fx:{timeM:.7,hangM:1.3,repB:1}},
+  {id:"fmt_oi",cat:"fmt",name:"OI赛制",icon:"📋",desc:"传统盲评，经典但容易引发争议。",formal:"hangR=0.15",ap:0,cost:0,fx:{hangR:.15}},
+  {id:"fmt_ioi",cat:"fmt",name:"IOI赛制",icon:"🔄",desc:"分点评测，挂分几率更低。",formal:"hangR=0",ap:4,cost:500,fx:{hangR:0}},
+  {id:"fmt_se",cat:"fmt",name:"OI+Self-Eval",icon:"🔍",desc:"增加自评环节，减少冤案。",formal:"hangR=0.06",ap:2,cost:200,fx:{hangR:.06}},
+  {id:"opening",cat:"evt",name:"开幕式",icon:"🎪",desc:"媒体关注度更高，家长更愿意报名。",formal:"repB+=3, partM*=1.1",ap:3,cost:600,fx:{repB:3,partM:1.1}},
+  {id:"lecture",cat:"evt",name:"赛后讲题",icon:"🎓",desc:"把比赛做成一次真正的学习体验。",formal:"repB+=2",ap:2,cost:350,fx:{repB:2}},
+  {id:"live",cat:"evt",name:"比赛直播",icon:"📺",desc:"增强传播力，知名度明显上升。",formal:"repB+=2, partM*=1.2",ap:4,cost:700,fx:{repB:2,partM:1.2}},
+  {id:"awards",cat:"evt",name:"颁奖典礼",icon:"🏅",desc:"仪式感拉满，能有效提升口碑。",formal:"repB+=4",ap:3,cost:900,fx:{repB:4}},
+  {id:"wkshp",cat:"evt",name:"Workshop",icon:"🛠️",desc:"赛前辅导，提升整体题面接受度。",formal:"repB+=1, solvB+=0.1",ap:2,cost:300,fx:{repB:1,solvB:.1}},
+  {id:"p_easy",cat:"diff",name:"简单题集",icon:"🟢",desc:"更适合拉新和扩大影响。",formal:"diffM-=2, partM*=1.2",ap:1,cost:50,fx:{diffM:-2,partM:1.2}},
+  {id:"p_hard",cat:"diff",name:"困难题集",icon:"🔴",desc:"更能打出品牌，但翻车风险上升。",formal:"diffM+=2, repMul*=1.3, partM*=0.8",ap:2,cost:100,fx:{diffM:2,repMul:1.3,partM:.8}},
+  {id:"p_more",cat:"diff",name:"题目加量",icon:"📚",desc:"赛程更扎实，但准备压力更大。",formal:"extraP+=2",ap:3,cost:250,fx:{extraP:2}},
+  {id:"wifi",cat:"fac",name:"高速网络",icon:"📡",desc:"评测更稳定，投诉更少。",formal:"hangM*=0.7, repB+=1",ap:2,cost:400,fx:{hangM:.7,repB:1}},
+  {id:"food",cat:"fac",name:"选手餐饮",icon:"🍱",desc:"吃得好，怨气就会少很多。",formal:"repB+=2, solvB+=0.05",ap:1,cost:500,fx:{repB:2,solvB:.05}},
+  {id:"shirt",cat:"fac",name:"纪念T恤",icon:"👕",desc:"把比赛做成文化符号。",formal:"repB+=2, partM*=1.05",ap:2,cost:400,fx:{repB:2,partM:1.05}},
+  {id:"venue",cat:"fac",name:"豪华场地",icon:"🏛️",desc:"顶级考场配置，家长一眼就能感知差异。",formal:"repB+=3, solvB+=0.1, partM*=1.15",ap:5,cost:1200,fx:{repB:3,solvB:.1,partM:1.15}},
+  {id:"invite",cat:"spec",name:"特邀选手",icon:"⭐",desc:"明星选手自带热度。",formal:"repB+=5, partM*=1.1",ap:4,cost:800,fx:{repB:5,partM:1.1}},
+  {id:"spons",cat:"spec",name:"企业赞助",icon:"💎",desc:"先回血，再扩大影响力。",formal:"moneyB+=600, repB+=1",ap:3,cost:0,fx:{moneyB:600,repB:1}},
 ];
 const FCATS=[
   {id:"time",name:"时间",c:"#60a5fa",ex:true},{id:"fmt",name:"赛制",c:"#a78bfa",ex:true},
@@ -140,11 +150,20 @@ function cSt(tw){var hangR=.15,timeM=1,solvB=0,repB=0,partM=1,diffM=0,extraP=0,h
   (tw.floors||[]).forEach(function(f){var e=f.fx||{};if(e.hangR!==undefined)hangR=e.hangR;if(e.timeM)timeM=e.timeM;if(e.solvB)solvB+=e.solvB;if(e.repB)repB+=e.repB;if(e.partM)partM*=e.partM;if(e.diffM)diffM+=e.diffM;if(e.extraP)extraP+=e.extraP;if(e.hangM)hangM*=e.hangM;if(e.repMul)repMul*=e.repMul;if(e.moneyB)moneyB+=e.moneyB});
   return{hangR:hangR,timeM:timeM,solvB:solvB,repB:repB,partM:partM,diffM:diffM,extraP:extraP,hangM:hangM,repMul:repMul,moneyB:moneyB,totP:tw.bp+extraP,effD:cl(tw.bd+diffM,1,10)}}
 
+function priceParticipationMultiplier(fee){
+  if(fee<=500) return cl(1.08-(fee-50)*0.00012,.98,1.08);
+  if(fee<=1500) return cl(0.98-(fee-500)*0.00012,.86,.98);
+  if(fee<=3000) return cl(0.86-(fee-1500)*0.00024,.50,.86);
+  if(fee<=5000) return cl(0.50-(fee-3000)*0.00020,.10,.50);
+  return cl(0.10-(fee-5000)*0.000018,.01,.10);
+}
+
 function estP(tw,rep,bridges,towers){var st=cSt(tw);var br=bridges.find(function(b){return b.to===tw.id});var base;
   if(tw.tier<=1)base=Math.round(40*Math.pow(1.045,rep)-st.effD*3);
   else if(br){var fr=towers[br.from];var lp=(fr&&fr.lastResult)?fr.lastResult.part:Math.round(20*Math.pow(1.03,rep));base=Math.round(lp*br.pass);if(fr&&fr.suspended)base=Math.round(base*.3)}
   else base=Math.round(15*Math.pow(1.035,rep)-st.effD*2);
-  var pe=br?cl(1-(br.price-50)/800,.3,1.3):cl(1-((tw.regPrice||50)-50)/800,.3,1.3);
+  var fee=br?br.price:(tw.regPrice||50);
+  var pe=priceParticipationMultiplier(fee);
   return Math.max(5,Math.round(base*pe*st.partM*(1+((tw.sites||1)-1)*.15)))}
 
 function compCost(tw,part){var s=tw.sites||1;var pr=s*120,vr=s*200,vo=s*80,se=s*150,bo=tw.board?part*350:0;return{pr:pr,vr:vr,vo:vo,se:se,bo:bo,total:pr+vr+vo+se+bo}}
@@ -221,18 +240,20 @@ function advanceMonth(){
     if(tw.schedMonth!==mo||tw.ranThisYear)return;
     var st=cSt(tw);var pDone=(tw.problems||[]).filter(Boolean).length;
     var jPow=JUDGES[G.jIdx].pow;var minPow=Math.ceil(tw.tier*1.2)+1;
-    if(pDone<st.totP||!tw.trained||jPow<minPow){
+    if(pDone<st.totP||jPow<minPow){
       G.rep=Math.max(0,G.rep-6);tw.suspended=true;tw.ranThisYear=true;
-      G.log.push({mo:G.month,yr:yr,msg:"💀 "+tw.name+" 因准备不足被迫翻车。选手愤怒，家长追问，声誉-6。"});return}
+      G.log.push({mo:G.month,yr:yr,msg:"💀 "+tw.name+" 因题目或算力准备不足被迫翻车。选手愤怒，家长追问，声誉-6。"});return}
+    var noTrainingRisk=!tw.trained;
     tw.suspended=false;var stats=cSt(tw);var jj=JUDGES[G.jIdx];
     var br=G.bridges.find(function(b){return b.to===tid});
     var base;
     if(tw.tier<=1)base=Math.round(40*Math.pow(1.045,G.rep)-stats.effD*3);
     else if(br){var fr=G.towers[br.from];var lp=(fr&&fr.lastResult)?fr.lastResult.part:Math.round(20*Math.pow(1.03,G.rep));base=Math.round(lp*br.pass);if(fr&&fr.suspended)base=Math.round(base*.3)}
     else base=Math.round(15*Math.pow(1.035,G.rep)-stats.effD*2);
-    var pe=br?cl(1-(br.price-50)/800,.3,1.3):cl(1-((tw.regPrice||50)-50)/800,.3,1.3);
+    var fee=br?br.price:(tw.regPrice||50);
+    var pe=priceParticipationMultiplier(fee);
     var part=Math.max(5,Math.round(base*pe*stats.partM*(1+((tw.sites||1)-1)*.15)));
-    var regP=br?br.price:(tw.regPrice||50);
+    var regP=fee;
     var grossRev=Math.round(part*regP*.9*(1+jj.pow*.03))+stats.moneyB;
     var costs=compCost(tw,part);var netRev=grossRev-costs.total;G.money+=netRev;
     var probs=(tw.problems||[]).filter(Boolean);
@@ -240,19 +261,33 @@ function advanceMonth(){
     var fp2=probs.map(function(p){if(p.verified&&p.tag&&Math.random()<.7)return Object.assign({},p,{tag:null});return p});
     var badTags=fp2.filter(function(p){return p.tag==="超纲"||p.tag==="冷门"}).length;
     var adHoc=fp2.filter(function(p){return p.tag==="Ad-Hoc"}).length;
-    var hangCnt=Math.round(part*stats.hangR*stats.hangM*(stats.effD/5));
-    var trainB=tw.trained==="high"?3:tw.trained==="mid"?1.5:0;
+    var noTrainHangM=noTrainingRisk?2.4:1;
+    var hangCnt=Math.round(part*stats.hangR*stats.hangM*noTrainHangM*(stats.effD/5));
+    var trainB=tw.trained==="high"?3:tw.trained==="mid"?1.5:tw.trained==="low"?.5:0;
     var jRepB=jj.pow*.15;
     var iCB=G.inspectors.reduce(function(s,i){return s+i.ab*.2},0);
-    var repCh=+((avgQ-(tw.tier*1.2+2))*1.5+trainB+stats.repB+jRepB+iCB-badTags*2.5-adHoc*.8)*stats.repMul-(hangCnt>part*.2?2:0);
+    var noTrainPenalty=noTrainingRisk?3.5:0;
+    var repCh=+((avgQ-(tw.tier*1.2+2))*1.5+trainB+stats.repB+jRepB+iCB-badTags*2.5-adHoc*.8-noTrainPenalty)*stats.repMul-(hangCnt>part*.2?2:0);
     repCh=+(repCh.toFixed(1));G.rep=Math.max(0,+((G.rep+repCh).toFixed(1)));
     var rTags=fp2.filter(function(p){return p.tag}).map(function(p){return{idx:p.idx,tag:p.tag}});
-    var result={part:part,rev:netRev,grossRev:grossRev,costTotal:costs.total,avgQ:+(avgQ.toFixed(1)),hangCnt:hangCnt,repCh:repCh,tags:rTags};
+    var abnormalEvents=[];
+    if(noTrainingRisk){
+      if(Math.random()<0.45) abnormalEvents.push("监考尺度不统一");
+      if(Math.random()<0.35) abnormalEvents.push("考场流程混乱");
+      if(Math.random()<0.25) abnormalEvents.push("申诉量激增");
+      if(Math.random()<0.18) abnormalEvents.push("迟到与进场争议");
+      if(abnormalEvents.length===0 && Math.random()<0.55) abnormalEvents.push("现场秩序紧张");
+    }
+    var result={part:part,rev:netRev,grossRev:grossRev,costTotal:costs.total,avgQ:+(avgQ.toFixed(1)),hangCnt:hangCnt,repCh:repCh,tags:rTags,abnormalEvents:abnormalEvents,noTrainingRisk:noTrainingRisk};
     tw.lastResult=result;tw.ranThisYear=true;
-    G.results.push({tid:tid,name:tw.name,yr:yr,mo:mo,part:part,rev:netRev,grossRev:grossRev,costTotal:costs.total,avgQ:result.avgQ,repCh:repCh,tags:rTags});
+    G.results.push({tid:tid,name:tw.name,yr:yr,mo:mo,part:part,rev:netRev,grossRev:grossRev,costTotal:costs.total,avgQ:result.avgQ,repCh:repCh,tags:rTags,abnormalEvents:abnormalEvents,noTrainingRisk:noTrainingRisk});
     G.setters.forEach(function(s){s.asgn=s.asgn.filter(function(a){return a.cid!==tid});s.used=s.asgn.length});
     tw.problems=[];tw.trained=null;
-    G.log.push({mo:G.month,yr:yr,msg:"🏆 "+tw.name+" 顺利完赛："+part+"人参赛，净收益¥"+netRev+"，声誉"+(repCh>0?"+":"")+repCh+"。圈内开始讨论你是不是已经真正站稳了。"})});
+    var extraStory="";
+    if(noTrainingRisk){
+      extraStory=abnormalEvents.length?" 但由于未做监考培训，现场出现了“"+abnormalEvents.join("、")+"”等异常情况。":" 虽然硬着头皮办了下来，但未培训监考团队让整个过程都在冒险。";
+    }
+    G.log.push({mo:G.month,yr:yr,msg:"🏆 "+tw.name+" 顺利完赛："+part+"人参赛，净收益¥"+netRev+"，声誉"+(repCh>0?"+":"")+repCh+"。圈内开始讨论你是不是已经真正站稳了。"+extraStory})});
 
   if(mo===0){Object.values(G.towers).forEach(function(tw){tw.ranThisYear=false;tw.suspended=false});G.log.push({mo:G.month,yr:yr,msg:"🎉 "+yr+" 赛季开启。旧争议被翻篇，新期待又压上来了。"})}
   G.log.push({mo:G.month,yr:yr,msg:"📅 "+yr+"年"+MO[mo]+"｜AP+"+ap+"｜维护¥"+jM+"｜特派薪资¥"+iSal});
@@ -274,8 +309,24 @@ function doAutoAssign(tid){var tw=G.towers[tid];if(!tw)return;var st=cSt(tw);for
 function doVerify(tid,idx){if(G.money<1000)return;G.money-=1000;var tw=G.towers[tid];if(tw&&tw.problems&&tw.problems[idx])tw.problems[idx].verified=true;render()}
 function doTrain(tid,q){var tw=G.towers[tid];var sites=tw?tw.sites||1:1;var base={low:150,mid:400,high:800}[q];var c=trainCost(base,sites);if(G.money<c)return;G.money-=c;tw.trained=q;tw.trainedSites=sites;render()}
 function doUpJ(){if(G.jIdx>=JUDGES.length-1)return;var nxt=JUDGES[G.jIdx+1];if(G.money<nxt.upg)return;G.money-=nxt.upg;G.jIdx++;G.log.push({mo:G.month,yr:G.year+Math.floor(G.month/12),msg:"⚙️ 评测环境升级为「"+nxt.name+"」。技术底盘终于跟上你的野心。"});render()}
-function mkBtnHtml(text,color,cls,data){return '<button class="btn '+cls+'" '+data+' style="background:'+color+';color:#000">'+text+'</button>'}
 function pillH(text,color){return '<span class="pill" style="background:'+color+'15;color:'+color+'">'+text+'</span>'}
+function floorEffectText(f){return '<div style="font-size:.74rem;color:var(--gold);margin-top:2px">形式化：'+f.formal+'</div>'}
+
+function renderNewsPanel(){
+  var curMo=G.month%12,curYr=G.year+Math.floor(G.month/12),news=genNews(G);
+  var html='<div class="card"><div style="font-size:.92rem;font-weight:900;color:var(--acc);margin-bottom:8px">📰 右侧新闻</div>';
+  html+='<div style="font-size:.76rem;color:var(--dim);margin-bottom:10px">'+curYr+'年'+MO[curMo]+' · 实时舆情</div>';
+  if(!news.length) html+='<div style="color:var(--mut)">暂无新闻</div>';
+  else news.slice(0,6).forEach(function(n){html+='<div class="news-card" style="background:var(--bg2);border-left-color:'+n.c+';border:1px solid '+n.c+'22;margin-bottom:8px"><div class="flex" style="margin-bottom:4px"><span>'+n.icon+'</span><span style="font-weight:800;color:'+n.c+'">'+n.t+'</span></div><div style="font-size:.82rem">'+n.m+'</div></div>'});
+  html+='</div>';
+  return html;
+}
+
+function renderLogPanel(){
+  var html='<div class="card bottom-log" style="padding:12px"><div style="font-size:.92rem;font-weight:900;color:var(--acc);margin-bottom:8px">📜 下方日志</div><div style="max-height:320px;overflow-y:auto">';
+  G.log.slice().reverse().forEach(function(l){html+='<div style="padding:4px 0;border-bottom:1px solid rgba(28,34,64,.08);font-size:.84rem"><span style="color:var(--mut);margin-right:6px">['+l.yr+'·'+MO[(l.mo||0)%12]+']</span>'+l.msg+'</div>'});
+  html+='</div></div>';return html;
+}
 
 function render(){
   applyTheme();
@@ -311,9 +362,9 @@ function render(){
   [["💰","¥"+G.money,"var(--gold)"],["⚡",G.ap+"(每月+"+dailyAP+")","var(--acc)"],["⭐","声誉 "+G.rep,"var(--pink)"],["🖥️",judge.name,"var(--purple)"],["🕵️","特派员 "+G.inspectors.length,"var(--blue)"]].forEach(function(s){html+='<div class="stat" style="background:'+s[2]+'0c;border:1px solid '+s[2]+'15"><span>'+s[0]+'</span><b style="color:'+s[2]+'">'+s[1]+'</b></div>'});
   html+='<div class="stat" style="background:var(--red)0c;border:1px solid var(--red)15"><span>📤</span><span style="color:var(--red)">月支出 ¥'+(jMnt+iSal)+'</span></div></div>';
 
-  var tabDefs=[["towers","🏗 赛事塔"],["bridges","🌉 晋级桥"],["setters","👤 出题人"],["insp","🕵️ 特派员"],["judge","⚙️ 评测"],["news","📰 新闻"],["hist","📊 历史"],["log","📜 日志"]];
+  var tabDefs=[["towers","🏗 赛事塔"],["bridges","🌉 晋级桥"],["setters","👤 出题人"],["insp","🕵️ 特派员"],["judge","⚙️ 评测"],["hist","📊 历史"]];
   html+='<div class="tabs">';tabDefs.forEach(function(t){html+='<button class="tab tabBtn'+(tab===t[0]?' tab-active':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>'});html+='</div>';
-  html+='<div class="main">';
+  html+='<div class="main"><div class="dashboard"><div>';
 
   if(tab==="towers"){
     var unbuilt=COMPS.filter(function(d){return !G.towers[d.id]});
@@ -338,15 +389,15 @@ function render(){
       html+='</div>'}
 
     if(selT&&G.towers[selT]){
-      var t=G.towers[selT],st=cSt(t),tc=TC[t.tier]||'#888',pDone=(t.problems||[]).filter(Boolean).length,jPow=judge.pow,minPow=Math.ceil(t.tier*1.2)+1,ml=((t.schedMonth-curMo)+12)%12||12,ep=estP(t,G.rep,G.bridges,G.towers),sites=t.sites||1,tCL=trainCost(150,sites),tCM=trainCost(400,sites),tCH=trainCost(800,sites),costs=compCost(t,ep),needRetrain=t.trained&&sites>(t.trainedSites||0);
+      var t=G.towers[selT],st=cSt(t),tc=TC[t.tier]||'#888',pDone=(t.problems||[]).filter(Boolean).length,jPow=judge.pow,minPow=Math.ceil(t.tier*1.2)+1,ml=((t.schedMonth-curMo)+12)%12||12,ep=estP(t,G.rep,G.bridges,G.towers),sites=t.sites||1,tCL=trainCost(150,sites),tCM=trainCost(400,sites),tCH=trainCost(800,sites),costs=compCost(t,ep),needRetrain=t.trained&&sites>(t.trainedSites||0),priceMul=priceParticipationMultiplier(t.regPrice||50);
       html+='<div class="card" style="margin-top:10px">';
       html+='<div style="font-size:1.35rem;font-weight:900;color:'+tc+';margin-bottom:4px">'+t.name+' <span style="font-size:.82rem;color:var(--dim);font-weight:500">T'+t.tier+' · '+(t.floors||[]).length+'层</span></div>';
       html+='<div class="story-box"><div style="font-size:.76rem;color:var(--gold);font-weight:800;margin-bottom:4px">剧情提示</div><div style="font-size:.9rem">'+(t.story||'这座赛事塔还没有故事简介。')+'</div></div>';
+      html+='<div class="kv" style="margin-bottom:12px"><div class="mono-dim">bd</div><div><b>'+t.bd+'</b>，基础难度，决定赛事底盘。</div><div class="mono-dim">bp</div><div><b>'+t.bp+'</b>，基础题数，受题目加量影响。</div><div class="mono-dim">tier</div><div><b>'+t.tier+'</b>，赛事层级，越高越吃算力与口碑。</div><div class="mono-dim">regPrice</div><div><b>'+(t.regPrice||50)+'</b>，报名费。500-1500 区间影响较缓，5000 约剩 10%，9999 约剩 1%。当前报名乘数 <b>'+priceMul.toFixed(2)+'</b>。</div><div class="mono-dim">sites</div><div><b>'+sites+'</b>，考点数，能提高参赛人数，也会提高培训成本和办赛成本。</div><div class="mono-dim">hangR / hangM</div><div>基础挂分率 / 挂分倍率，受赛制、网络、闪电赛、未培训影响。</div><div class="mono-dim">repB / repMul</div><div>固定声誉加成 / 声誉变化倍率，活动和难度楼层会影响它们。</div><div class="mono-dim">solvB</div><div>额外做题舒适度加成，影响整体口碑。</div><div class="mono-dim">moneyB</div><div>额外资金加成，例如赞助。</div></div>';
       html+='<div style="font-size:.84rem;color:var(--dim);margin-bottom:10px">开赛月：<b style="color:'+(ml<=2&&!t.ranThisYear?'var(--red)':'var(--gold)')+'">'+MO[t.schedMonth]+'</b>';
       if(!t.ranThisYear)html+=' · 距今 <b style="color:'+(ml<=2?'var(--red)':'var(--acc)')+'">'+ml+'</b> 个月';
       if(t.ranThisYear)html+='<span style="color:var(--grn)"> · 本赛季已完成</span>';
       html+='</div>';
-
       if(!t.ranThisYear){
         html+='<div class="flex" style="margin-bottom:10px">';
         html+='<label style="font-size:.82rem;color:var(--dim)">📅<select class="inp twSel" data-tid="'+selT+'" data-key="schedMonth" style="width:76px">';MO.forEach(function(m,i){html+='<option value="'+i+'"'+(t.schedMonth===i?' selected':'')+'>'+m+'</option>'});html+='</select></label>';
@@ -356,6 +407,7 @@ function render(){
         html+='<button class="btn ppBtn" style="background:var(--purple);color:#000" data-tid="'+selT+'">题目('+pDone+'/'+st.totP+')</button>';
         if(pDone<st.totP)html+='<button class="btn autoBtn" style="background:var(--blue);color:#000" data-tid="'+selT+'">自动分配</button>';
         html+='</div>';
+        if(!t.trained) html+='<div style="font-size:.8rem;color:var(--orange);margin:-2px 0 10px 0">⚠️ 不培训也能开赛，但异常事件概率会显著上升，挂分与申诉风险更高。</div>';
         if(!t.trained||needRetrain){
           html+='<div class="flex" style="margin-bottom:10px"><span style="font-size:.82rem;color:'+(needRetrain?'var(--orange)':'var(--dim)')+'">🎓'+(needRetrain?'考点扩张后需重新培训':'组织培训')+'：</span>';
           html+='<button class="btn trainBtn'+(G.money<tCL?' btn-dis':'')+'" data-tid="'+selT+'" data-q="low" style="background:#6ee7b7;color:#000">基础 ¥'+tCL+'</button>';
@@ -363,10 +415,9 @@ function render(){
           html+='<button class="btn trainBtn'+(G.money<tCH?' btn-dis':'')+'" data-tid="'+selT+'" data-q="high" style="background:var(--pink);color:#000">高级 ¥'+tCH+'</button></div>'
         }
       }
-
       html+='<div class="flex" style="margin-bottom:10px">'+pillH('难度 '+st.effD,'var(--acc)')+pillH('预计 '+ep+' 人','var(--blue)')+pillH('考点 '+sites,'var(--orange)')+(t.trained&&!needRetrain?pillH('培训完成','var(--grn)'):'')+(needRetrain?pillH('需重新培训','var(--orange)'):'')+(jPow>=minPow?pillH('算力充足','var(--grn)'):pillH('算力不足','var(--red)'))+(t.board?pillH('含住宿','var(--orange)'):'')+'</div>';
       html+='<div style="background:var(--bg2);border-radius:12px;padding:12px;font-size:.82rem;margin-bottom:10px"><div style="font-weight:800;margin-bottom:5px;color:var(--dim)">💸 本场预估成本</div><div class="flex" style="color:var(--dim)"><span>监考 <b style="color:var(--txt)">¥'+costs.pr+'</b></span><span>场地 <b style="color:var(--txt)">¥'+costs.vr+'</b></span><span>志愿者 <b style="color:var(--txt)">¥'+costs.vo+'</b></span><span>安保 <b style="color:var(--txt)">¥'+costs.se+'</b></span>'+(t.board?'<span>住宿 <b style="color:var(--orange)">¥'+costs.bo+'</b></span>':'')+'<span style="color:var(--red);font-weight:800">合计 ¥'+costs.total+'</span></div></div>';
-      if(t.lastResult){var r=t.lastResult;html+='<div style="background:var(--bg2);border-radius:12px;padding:12px;font-size:.82rem;margin-bottom:10px"><div style="font-weight:800;margin-bottom:5px;color:var(--gold)">📊 上次战报</div><div class="flex"><span>参赛 <b style="color:var(--acc)">'+r.part+'</b></span><span>净收益 <b style="color:'+(r.rev>=0?'var(--grn)':'var(--red)')+'">¥'+r.rev+'</b></span><span>声誉 <b style="color:'+(r.repCh>=0?'var(--grn)':'var(--red)')+'">'+(r.repCh>0?'+':'')+r.repCh+'</b></span></div>'+(r.tags&&r.tags.length?'<div style="margin-top:5px">'+r.tags.map(function(tg){return pillH('#'+(tg.idx+1)+tg.tag,'var(--red)')}).join('')+'</div>':'')+'</div>'}
+      if(t.lastResult){var r=t.lastResult;html+='<div style="background:var(--bg2);border-radius:12px;padding:12px;font-size:.82rem;margin-bottom:10px"><div style="font-weight:800;margin-bottom:5px;color:var(--gold)">📊 上次战报</div><div class="flex"><span>参赛 <b style="color:var(--acc)">'+r.part+'</b></span><span>净收益 <b style="color:'+(r.rev>=0?'var(--grn)':'var(--red)')+'">¥'+r.rev+'</b></span><span>声誉 <b style="color:'+(r.repCh>=0?'var(--grn)':'var(--red)')+'">'+(r.repCh>0?'+':'')+r.repCh+'</b></span>'+(r.noTrainingRisk?'<span style="color:var(--orange)">未培训开赛</span>':'')+'</div>'+(r.abnormalEvents&&r.abnormalEvents.length?'<div style="margin-top:5px;color:var(--orange)">异常：'+r.abnormalEvents.join('、')+'</div>':'')+(r.tags&&r.tags.length?'<div style="margin-top:5px">'+r.tags.map(function(tg){return pillH('#'+(tg.idx+1)+tg.tag,'var(--red)')}).join('')+'</div>':'')+'</div>'}
       if(pp===selT&&!t.ranThisYear){
         html+='<div style="margin-top:8px;background:var(--bg2);border-radius:12px;padding:12px"><div style="font-weight:800;margin-bottom:8px;font-size:.94rem">📝 题目准备面板</div>';
         for(var i=0;i<st.totP;i++){
@@ -392,13 +443,13 @@ function render(){
     html+='<div class="story-box"><div style="font-size:.88rem">赛事不是孤岛。桥梁代表晋级通道，决定一场比赛带来的流量和信任，能否顺利流向下一站。</div></div>';
     if(bf){html+='<div class="card"><div style="margin-bottom:6px">从 <b style="color:var(--acc)">'+(G.towers[bf]?G.towers[bf].name:'')+'</b> 出发，选择下一站：</div><div class="flex">';tids.filter(function(id){return id!==bf&&!G.bridges.some(function(b){return b.from===bf&&b.to===id})}).forEach(function(id){html+='<button class="btn brToBtn" data-to="'+id+'" style="background:'+(TC[G.towers[id].tier]||'#888')+';color:#000">'+G.towers[id].name+'</button>'});html+='<button class="btn" id="brCancel" style="background:var(--red);color:#000">取消</button></div></div>'}
     else{html+='<div class="flex" style="margin-bottom:12px"><span style="font-size:.82rem;color:var(--dim)">选择起点：</span>';tids.forEach(function(id){html+='<button class="btn brFromBtn'+(G.ap<3?' btn-dis':'')+'" data-from="'+id+'" style="background:'+(TC[G.towers[id].tier]||'#888')+';color:#000">'+G.towers[id].name+'</button>'});html+='</div>'}
-    if(G.bridges.length){html+='<div class="grid" style="gap:10px">';G.bridges.forEach(function(b){var ep=G.towers[b.to]?estP(G.towers[b.to],G.rep,G.bridges,G.towers):'?';html+='<div class="card"><div class="flex" style="margin-bottom:10px"><b style="color:var(--acc);font-size:1rem">'+(G.towers[b.from]?G.towers[b.from].name:'')+'</b><span style="color:var(--dim)">→</span><b style="color:var(--gold);font-size:1rem">'+(G.towers[b.to]?G.towers[b.to].name:'')+'</b>'+pillH('预计 '+ep+' 人','var(--blue)')+'</div><div class="flex" style="gap:22px"><label style="font-size:.82rem;color:var(--dim);display:flex;align-items:center;gap:6px">💰 报名费<input type="number" class="inp brInp" data-bid="'+b.id+'" data-key="price" value="'+b.price+'"></label><label style="font-size:.82rem;color:var(--dim);display:flex;align-items:center;gap:6px">📊 通过率<input type="number" class="inp brInp" data-bid="'+b.id+'" data-key="pass" value="'+Math.round(b.pass*100)+'">%</label></div></div>'});html+='</div>'}
+    if(G.bridges.length){html+='<div class="grid" style="gap:10px">';G.bridges.forEach(function(b){var ep=G.towers[b.to]?estP(G.towers[b.to],G.rep,G.bridges,G.towers):'?',feeMul=priceParticipationMultiplier(b.price);html+='<div class="card"><div class="flex" style="margin-bottom:10px"><b style="color:var(--acc);font-size:1rem">'+(G.towers[b.from]?G.towers[b.from].name:'')+'</b><span style="color:var(--dim)">→</span><b style="color:var(--gold);font-size:1rem">'+(G.towers[b.to]?G.towers[b.to].name:'')+'</b>'+pillH('预计 '+ep+' 人','var(--blue)')+'</div><div class="flex" style="gap:22px"><label style="font-size:.82rem;color:var(--dim);display:flex;align-items:center;gap:6px">💰 报名费<input type="number" class="inp brInp" data-bid="'+b.id+'" data-key="price" value="'+b.price+'"></label><label style="font-size:.82rem;color:var(--dim);display:flex;align-items:center;gap:6px">📊 通过率<input type="number" class="inp brInp" data-bid="'+b.id+'" data-key="pass" value="'+Math.round(b.pass*100)+'">%</label></div><div style="font-size:.76rem;color:var(--dim);margin-top:6px">当前价格乘数：'+feeMul.toFixed(2)+'</div></div>'});html+='</div>'}
     else html+='<div class="card" style="color:var(--mut)">暂无桥梁。先打通至少一条晋级路线，赛事体系才会真正运转起来。</div>'
   }
 
   if(tab==="setters"){
     html+='<div style="font-size:.88rem;font-weight:800;color:var(--acc);margin-bottom:6px">👤 出题人（'+G.setters.length+'）</div><div class="grid grid-auto" style="margin-bottom:16px">';
-    G.setters.forEach(function(s){html+='<div class="card" style="padding:12px"><div style="font-weight:800;font-size:.96rem">'+s.nm+'</div><div style="font-size:.78rem;color:var(--dim)">实力 lv'+s.sk+' · 质量 q'+s.qu+' · <b style="color:'+(s.used>=s.cap?'var(--red)':'var(--grn)')+'">'+s.used+'/'+s.cap+'</b></div></div>'});
+    G.setters.forEach(function(s){html+='<div class="card" style="padding:12px"><div style="font-weight:800;font-size:.96rem">'+s.nm+'</div><div style="font-size:.78rem;color:var(--dim)">实力 lv'+s.sk+' · 质量 q'+s.qu+' · 容量 <b style="color:'+(s.used>=s.cap?'var(--red)':'var(--grn)')+'">'+s.used+'/'+s.cap+'</b></div></div>'});
     html+='</div><div style="font-size:.88rem;font-weight:800;color:var(--gold);margin-bottom:6px">📋 人才市场</div><div class="grid grid-auto">';
     G.market.forEach(function(s){html+='<div class="card" style="padding:12px"><div style="font-weight:800;font-size:.96rem">'+s.nm+'</div><div style="font-size:.78rem;color:var(--dim);margin-bottom:6px">lv'+s.sk+' · q'+s.qu+' · 容量'+s.cap+'</div><button class="btn hireBtn'+(G.money<s.cost?' btn-dis':'')+'" data-sid="'+s.id+'" style="background:var(--grn);color:#000">招募 ¥'+s.cost+'</button></div>'});
     html+='</div>'
@@ -422,16 +473,12 @@ function render(){
     JUDGES.forEach(function(j,i){var cur=i===G.jIdx,lk=i>G.jIdx+1,isN=i===G.jIdx+1;html+='<div class="card" style="padding:14px;border:2px solid '+(cur?'var(--acc)':isN?'rgba(255,194,68,.4)':'var(--bdr)')+';opacity:'+(lk?.34:1)+';position:relative;'+(cur?'background:rgba(0,221,179,.05)':'')+'">'+(cur?'<div style="position:absolute;top:8px;right:10px;background:var(--acc);color:#000;padding:2px 7px;border-radius:999px;font-size:.68rem;font-weight:900">当前使用</div>':'')+'<div style="font-size:2rem;margin-bottom:2px">'+j.e+'</div><div style="font-weight:900;font-size:1rem;color:'+(cur?'var(--acc)':'var(--txt)')+'">'+j.name+'</div><div style="font-size:.78rem;color:var(--blue);margin-bottom:5px">'+j.mdl+'</div><div class="flex" style="margin-bottom:6px">'+pillH('算力 '+j.pow,'var(--blue)')+pillH('¥'+j.mnt+'/月','var(--red)')+'</div><div style="font-size:.74rem;color:var(--dim);margin-bottom:6px">可支撑：'+(COMPS.filter(function(c){return j.pow>=Math.ceil(c.tier*1.2)+1}).map(function(c){return c.name}).join('、')||'无')+'</div>'+(isN?'<button class="btn upJBtn'+(G.money<j.upg?' btn-dis':'')+'" style="background:var(--gold);color:#000">升级 ¥'+j.upg+'</button>':'')+'</div>'});html+='</div>'
   }
 
-  if(tab==="news"){var news=genNews(G);html+='<div style="font-size:.88rem;font-weight:800;color:var(--acc);margin-bottom:10px">📰 新闻频道 · '+curYr+'年'+MO[curMo]+'</div><div class="grid" style="gap:10px">';news.forEach(function(n){html+='<div class="card news-card" style="border-left-color:'+n.c+';border-color:'+n.c+'20"><div class="flex" style="margin-bottom:6px"><span style="font-size:1.3rem">'+n.icon+'</span><span style="font-weight:800;font-size:.96rem;color:'+n.c+'">'+n.t+'</span></div><div style="font-size:.94rem;line-height:1.8">'+n.m+'</div></div>'});if(!news.length)html+='<div class="card" style="color:var(--mut);padding:24px">暂无新闻</div>';html+='</div>'}
-
   if(tab==="hist"){
     if(!G.results.length)html+='<div class="card" style="color:var(--mut)">暂无历史记录</div>';
-    else{html+='<div class="grid" style="gap:8px">';G.results.slice().reverse().forEach(function(r){html+='<div class="card" style="padding:12px"><div class="flex" style="justify-content:space-between;margin-bottom:4px"><b style="color:'+(TC[(G.towers[r.tid]?G.towers[r.tid].tier:0)]||'#888')+';font-size:.96rem">'+r.name+'</b><span style="font-size:.76rem;color:var(--dim)">'+r.yr+'年'+MO[r.mo%12]+'</span></div><div class="flex" style="font-size:.84rem"><span>'+r.part+' 人</span><span style="color:'+(r.rev>=0?'var(--grn)':'var(--red)')+'">净 ¥'+r.rev+'</span><span style="color:'+(r.repCh>=0?'var(--grn)':'var(--red)')+'">声誉 '+(r.repCh>0?'+':'')+r.repCh+'</span></div>'+(r.tags&&r.tags.length?'<div style="margin-top:4px">'+r.tags.map(function(tg){return pillH('#'+(tg.idx+1)+tg.tag,'var(--red)')}).join('')+'</div>':'')+'</div>'});html+='</div>'}
+    else{html+='<div class="grid" style="gap:8px">';G.results.slice().reverse().forEach(function(r){html+='<div class="card" style="padding:12px"><div class="flex" style="justify-content:space-between;margin-bottom:4px"><b style="color:'+(TC[(G.towers[r.tid]?G.towers[r.tid].tier:0)]||'#888')+';font-size:.96rem">'+r.name+'</b><span style="font-size:.76rem;color:var(--dim)">'+r.yr+'年'+MO[r.mo%12]+'</span></div><div class="flex" style="font-size:.84rem"><span>'+r.part+' 人</span><span style="color:'+(r.rev>=0?'var(--grn)':'var(--red)')+'">净 ¥'+r.rev+'</span><span style="color:'+(r.repCh>=0?'var(--grn)':'var(--red)')+'">声誉 '+(r.repCh>0?'+':'')+r.repCh+'</span>'+(r.noTrainingRisk?'<span style="color:var(--orange)">未培训开赛</span>':'')+'</div>'+(r.abnormalEvents&&r.abnormalEvents.length?'<div style="margin-top:4px;font-size:.76rem;color:var(--orange)">异常：'+r.abnormalEvents.join('、')+'</div>':'')+(r.tags&&r.tags.length?'<div style="margin-top:4px">'+r.tags.map(function(tg){return pillH('#'+(tg.idx+1)+tg.tag,'var(--red)')}).join('')+'</div>':'')+'</div>'});html+='</div>'}
   }
 
-  if(tab==="log"){html+='<div class="card" style="padding:12px;max-height:560px;overflow-y:auto">';G.log.slice().reverse().forEach(function(l){html+='<div style="padding:4px 0;border-bottom:1px solid rgba(28,34,64,.08);font-size:.84rem"><span style="color:var(--mut);margin-right:6px">['+l.yr+'·'+MO[(l.mo||0)%12]+']</span>'+l.msg+'</div>'});html+='</div>'}
-
-  html+='</div>';
+  html+='</div><div class="sidecol">'+renderNewsPanel()+'</div></div>'+renderLogPanel()+'</div>';
   app.innerHTML=html;
   bindAll()
 }
@@ -464,7 +511,6 @@ function bindAll(){
   document.querySelectorAll('.hireBtn:not(.btn-dis)').forEach(function(b){b.onclick=function(){var s=G.market.find(function(x){return x.id===b.dataset.sid});if(s)doHire(s)}});
   document.querySelectorAll('.fireBtn').forEach(function(b){b.onclick=function(){doFireI(b.dataset.iid)}});
   document.querySelectorAll('.hireIBtn:not(.btn-dis)').forEach(function(b){b.onclick=function(){var ins=G.inspMkt.find(function(x){return x.id===b.dataset.iid});if(ins)doHireI(ins)}});
-  document.querySelectorAll('.upJBtn:not(.btn-dis)').forEach(function(){this});
   document.querySelectorAll('.upJBtn:not(.btn-dis)').forEach(function(b){b.onclick=function(){doUpJ()}})
 }
 
@@ -478,10 +524,10 @@ function renderFloorPicker(){
   FCATS.forEach(function(cat){
     var floors=FLOORS.filter(function(f){return f.cat===cat.id});
     var hasCat=(t.floors||[]).some(function(f){return f.cat===cat.id});
-    inner+='<div style="margin-bottom:16px"><div style="font-size:.9rem;font-weight:800;color:'+cat.c+';margin-bottom:8px">'+cat.name+(cat.ex&&hasCat?' <span style="font-size:.72rem;color:var(--mut)">（本类互斥）</span>':'')+'</div><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">';
+    inner+='<div style="margin-bottom:16px"><div style="font-size:.9rem;font-weight:800;color:'+cat.c+';margin-bottom:8px">'+cat.name+(cat.ex&&hasCat?' <span style="font-size:.72rem;color:var(--mut)">（本类互斥）</span>':'')+'</div><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">';
     floors.forEach(function(f){
       var owned=eids.indexOf(f.id)>=0,blocked=cat.ex&&hasCat,dis=owned||blocked||G.ap<f.ap||G.money<f.cost;
-      inner+='<div class="floorOpt'+(dis?' btn-dis':'')+'" data-fid="'+f.id+'" style="padding:10px;border-radius:12px;background:'+(dis?'var(--bg2)':cat.c+'08')+';border:1px solid '+(dis?'var(--mut)':cat.c+'30')+';cursor:'+(dis?'not-allowed':'pointer')+';opacity:'+(dis?.35:1)+'"><div style="font-weight:800;font-size:.84rem;margin-bottom:3px">'+f.icon+' '+f.name+'</div><div style="font-size:.76rem;color:var(--dim);margin-bottom:4px">'+f.desc+'</div><div style="font-size:.76rem;color:'+cat.c+'">'+(f.ap>0?'AP '+f.ap+' ':'')+(f.cost>0?'¥'+f.cost:'')+((!f.ap&&!f.cost)?'免费':'')+'</div></div>'
+      inner+='<div class="floorOpt'+(dis?' btn-dis':'')+'" data-fid="'+f.id+'" style="padding:10px;border-radius:12px;background:'+(dis?'var(--bg2)':cat.c+'08')+';border:1px solid '+(dis?'var(--mut)':cat.c+'30')+';cursor:'+(dis?'not-allowed':'pointer')+';opacity:'+(dis?.35:1)+'"><div style="font-weight:800;font-size:.84rem;margin-bottom:3px">'+f.icon+' '+f.name+'</div><div style="font-size:.76rem;color:var(--dim);margin-bottom:4px">'+f.desc+'</div><div style="font-size:.76rem;color:var(--gold);margin-bottom:4px">'+f.formal+'</div><div style="font-size:.76rem;color:'+cat.c+'">'+(f.ap>0?'AP '+f.ap+' ':'')+(f.cost>0?'¥'+f.cost:'')+((!f.ap&&!f.cost)?'免费':'')+'</div></div>'
     });
     inner+='</div></div>'
   });
